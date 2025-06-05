@@ -1,5 +1,7 @@
-<center>PlanEase API</center>
-<center>Ini adalah api untuk aplikasi PlanEase</center>
+<div align="center">
+# PlanEase API  
+Ini adalah API untuk aplikasi PlanEase
+</div>
 
 ## How to clone?
 
