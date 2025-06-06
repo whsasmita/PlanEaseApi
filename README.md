@@ -55,7 +55,6 @@
 Untuk menguji endpoint API, kamu bisa menggunakan [Postman](https://www.postman.com/). File koleksi tersedia di repo ini.
 
 🔗 **Download Postman Collection:**
-
 [📥 Klik di sini untuk mengunduh](./PlanEase.postman_collection.json)
 
 Atau import manual ke Postman:
