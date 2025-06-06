@@ -9,7 +9,7 @@
    https://github.com/whsasmita/PlanEaseApi.git
 3. Navigate to the project folder:
     ```bash
-    cd SiDatang-Web
+    cd PlanEaseApi
     ```
 4. Install Laravel dependencies:
     ```bash
@@ -29,7 +29,7 @@
     ```
 8. Edit the `.env` file to configure your database:
     ```env
-    DB_DATABASE=db_sidatang
+    DB_DATABASE=planeaseapi
     DB_USERNAME=root
     DB_PASSWORD=
     ```
@@ -41,7 +41,7 @@
     ```bash
     php artisan db:seed
     ```
-11.  Start the Laravel local server:
+11. Start the Laravel local server:
     ```bash
     php artisan serve
     ```
@@ -52,7 +52,7 @@
 
 ---
 <h2>Postman Collection</h2> 
-## Untuk menguji endpoint API, kamu bisa menggunakan [Postman](https://www.postman.com/). File koleksi tersedia di repo ini.
+Untuk menguji endpoint API, kamu bisa menggunakan [Postman](https://www.postman.com/). File koleksi tersedia di repo ini.
 
 🔗 **Download Postman Collection:**
 
