@@ -52,7 +52,7 @@
 
 ---
 <h2>Postman Collection</h2> 
-To test the API, import the provided Postman collection file into [Postman](https://www.postman.com/). The file is included in this repository.
+Untuk menguji endpoint API, kamu bisa menggunakan [Postman](https://www.postman.com/). File koleksi tersedia di repo ini.
 
 🔗 **Download Postman Collection:**
 [Tap here for start download](./PlanEase.postman_collection.json)
