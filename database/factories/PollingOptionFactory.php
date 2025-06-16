@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Polling;
+use App\Models\PollingOption;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,16 +11,13 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class PollingOptionFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = PollingOption::class;
+
     public function definition(): array
     {
         return [
-            'polling_id' => Polling::factory(),
-            'option' => fake()->sentence(3),
+            // 'polling_id' akan diisi saat dipanggil dari seeder
+            'option' => $this->faker->word() . ' ' . $this->faker->word(),
         ];
     }
 }

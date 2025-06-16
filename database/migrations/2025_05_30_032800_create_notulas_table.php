@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('notulas', function (Blueprint $table) {
             $table->increments('id_notula');
             $table->string('title', 100);
-            $table->string('description')->nullable();
+            $table->text('description')->nullable();
             $table->text('content');
             $table->timestamps();
         });

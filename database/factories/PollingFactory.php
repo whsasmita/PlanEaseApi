@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Polling;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -10,18 +11,16 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class PollingFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = Polling::class;
+
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
-            'title' => fake()->name(),
-            'polling_image' => fake()->imageUrl(400, 300, 'business'),
-            'deadline' => fake()->date(),
+            'user_id' => User::inRandomOrder()->first()->id_user ?? User::factory()->create()->id_user,
+            'title' => $this->faker->sentence(rand(3, 7)),
+            'description' => $this->faker->paragraph(rand(3, 7)),
+            'polling_image' => $this->faker->boolean(50) ? $this->faker->imageUrl(640, 480, 'poll') : null,
+            'deadline' => $this->faker->dateTimeBetween('+1 week', '+1 month')->format('Y-m-d'),
         ];
     }
 }

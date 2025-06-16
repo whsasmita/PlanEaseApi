@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Polling;
 use App\Models\PollingOption;
+use App\Models\PollingVote;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class PollingSeeder extends Seeder
@@ -15,18 +15,30 @@ class PollingSeeder extends Seeder
      */
     public function run(): void
     {
-        $users = User::all();
-        
-        foreach ($users as $user) {
-            $pollings = Polling::factory(rand(1, 2))->create([
-                'user_id' => $user->id_user,
+        if (User::count() === 0) {
+            User::factory()->count(5)->create();
+        }
+
+        Polling::factory()->count(10)->create()->each(function ($polling) {
+            $options = PollingOption::factory()->count(rand(3, 5))->create([
+                'polling_id' => $polling->id_polling,
             ]);
-            
-            foreach ($pollings as $polling) {
-                PollingOption::factory(rand(2, 5))->create([
+
+            $users = User::all();
+
+            $numberOfVotes = rand(0, min(20, $users->count()));
+
+            $voters = $users->random($numberOfVotes);
+
+            foreach ($voters as $user) {
+                $randomOption = $options->random();
+
+                PollingVote::factory()->create([
                     'polling_id' => $polling->id_polling,
+                    'polling_option_id' => $randomOption->id_option,
+                    'user_id' => $user->id_user,
                 ]);
             }
-        }
+        });
     }
 }

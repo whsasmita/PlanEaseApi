@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Arr;
 
@@ -58,24 +59,15 @@ class AuthenticatedSessionController
      * Destroy an authenticated session (for JWT token).
      * Membatalkan token JWT (menambahkannya ke daftar hitam).
      */
-    public function destroy(Request $request): JsonResponse
+    public function destroy(): JsonResponse
     {
-        $token = $request->bearerToken();
+        Auth::logout();
 
-        if ($token) {
-            try {
-                JWTAuth::invalidate($token);
-                return response()->json(['message' => 'Logged out successfully.'], 200);
-            } catch (JWTException $e) {
-                return response()->json([
-                    'message' => 'Failed to invalidate token.',
-                    'error' => $e->getMessage()
-                ], 500);
-            }
-        }
-
-        return response()->json(['message' => 'No token provided.'], 400);
+        return response()->json([
+            'message' => 'Logout successful.',
+        ], 200);
     }
+
 
     /**
      * Refresh a token.
