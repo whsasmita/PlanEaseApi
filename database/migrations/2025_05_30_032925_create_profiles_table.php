@@ -22,8 +22,8 @@ return new class extends Migration
                 ->onDelete('cascade');
             
             $table->string('photo_profile')->nullable();
+            $table->string('division', 50);
             $table->string('position', 50);
-            $table->string('organisation', 100);
             $table->timestamps();
         });
     }

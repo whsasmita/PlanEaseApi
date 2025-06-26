@@ -25,7 +25,7 @@ class ScheduleCreateRequest extends FormRequest
             'title' => 'required|string|max:100',
             'description' => 'nullable|string',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ];
     }
 
@@ -41,7 +41,6 @@ class ScheduleCreateRequest extends FormRequest
             'start_date.required' => 'The start date is required.',
             'start_date.date' => 'The start date must be a valid date.',
 
-            'end_date.required' => 'The end date is required.',
             'end_date.date' => 'The end date must be a valid date.',
             'end_date.after_or_equal' => 'The end date must be equal to or after the start date.',
         ];

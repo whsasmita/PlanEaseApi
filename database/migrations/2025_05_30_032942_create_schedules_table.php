@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title', 100);
             $table->string('description')->nullable();
             $table->date('start_date');
-            $table->date('end_date');
+            $table->date('end_date')->nullable();
             $table->timestamps();
 
             // Index untuk performance query

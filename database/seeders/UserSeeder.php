@@ -15,9 +15,18 @@ class UserSeeder extends Seeder
     {
 
         User::factory()->create([
-            'full_name' => 'Admin BEM FTK Undiksha',
-            'email' => 'ftk@undiksha.ac.id',
+            'full_name' => 'Admin',
+            'email' => 'admin@undiksha.ac.id',
+            'password' => bcrypt('admin123'),
             'role' => 'ADMIN',
+            'phone' => '081234567890',
+        ]);
+        User::factory()->create([
+            'full_name' => 'Member',
+            'email' => 'member@undiksha.ac.id',
+            'password' => bcrypt('member123'),
+            'role' => 'MEMBER',
+            'phone' => '081234567890',
         ]);
     }
 }

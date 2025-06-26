@@ -44,8 +44,8 @@ return [
             'driver' => 'jwt',
             'provider' => 'users',
         ],
-        'auth' => [ // <-- TFAMBAHKAN BLOK INI UNTUK DIAGNOSA
-            'driver' => 'jwt', // Gunakan driver yang sama dengan 'api'
+        'auth' => [ 
+            'driver' => 'jwt', 
             'provider' => 'users',
         ],
     ],

@@ -21,7 +21,7 @@ class ProfileFactory extends Factory
             'user_id' => User::factory(),
             'photo_profile' => fake()->imageUrl(200, 200, 'people'),
             'position' => fake()->jobTitle(),
-            'organisation' => fake()->company(),
+            'division' => fake()->company(),
         ];
     }
 }
