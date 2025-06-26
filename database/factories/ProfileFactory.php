@@ -20,8 +20,8 @@ class ProfileFactory extends Factory
     public function definition(): array
     {
         $sourceImages = [
-            storage_path('app/profile_photos/dummy_photos1.png'),
-            storage_path('app/profile_photos/dummy_photos2.png'),
+            storage_path('app/public/seeder_photos/dummy_photos1.png'),
+            storage_path('app/public/seeder_photos/dummy_photos2.png'),
         ];
 
         $randomImagePath = fake()->randomElement($sourceImages);
