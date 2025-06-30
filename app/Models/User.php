@@ -45,7 +45,7 @@ class User extends Authenticatable implements JWTSubject
      */
     public function getJWTIdentifier()
     {
-        return $this->getKey();
+        return $this->getKey(); 
     }
 
     /**
@@ -71,6 +71,18 @@ class User extends Authenticatable implements JWTSubject
         return $this->role === $role;
     }
 
+    // PERBAIKAN: Menggunakan $this->id_user untuk mendapatkan primary key
+    public function toArray(): array
+    {
+        return [
+            'id_user' => $this->id_user,
+            'full_name' => $this->full_name,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'role' => $this->role,
+        ];
+    }
+
     public function profile()
     {
         return $this->hasOne(Profile::class, 'user_id', 'id_user');
@@ -90,5 +102,4 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Polling::class, 'user_id', 'id_user');
     }
-
 }

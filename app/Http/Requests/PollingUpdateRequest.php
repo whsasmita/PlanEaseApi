@@ -4,7 +4,10 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Models\Polling; // Import the Polling model
+use App\Models\Polling;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class PollingUpdateRequest extends FormRequest
 {
@@ -13,15 +16,41 @@ class PollingUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        if (!auth()->check() && auth()->user()->role === 'admin') {
-            return false;
+        // 1. Ensure user is authenticated first
+        if (!auth()->check()) {
+            throw new HttpResponseException(
+                response()->json(['message' => 'Authentication required to update a polling.'], Response::HTTP_UNAUTHORIZED)
+            );
         }
 
-        $pollingId = $this->route('polling');
+        // Fix: Handle Route Model Binding properly
+        $polling = $this->route('polling');
+        
+        // If it's already a Polling model (Route Model Binding)
+        if ($polling instanceof Polling) {
+            $pollingModel = $polling;
+        } else {
+            // If it's an ID, find the model
+            $pollingModel = Polling::find($polling);
+        }
 
-        $polling = Polling::find($pollingId);
+        // 2. Check if the polling exists
+        if (!$pollingModel) {
+            throw new HttpResponseException(
+                response()->json(['message' => 'Polling not found.'], Response::HTTP_NOT_FOUND)
+            );
+        }
 
-        return $polling && $polling->user_id === auth()->user()->id_user;
+        // 3. Check if the authenticated user is the owner OR an admin
+        $user = auth()->user();
+        if ($pollingModel->user_id === $user->id_user || $user->hasRole('ADMIN')) {
+            return true; // Authorized if owner or admin
+        }
+
+        // If none of the above conditions are met, deny access
+        throw new HttpResponseException(
+            response()->json(['message' => 'You are not authorized to update this polling.'], Response::HTTP_FORBIDDEN)
+        );
     }
 
     /**
@@ -32,18 +61,13 @@ class PollingUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // user_id might not be updated, or if it is, only by specific roles
-            // 'user_id' => [
-            //     'sometimes', // 'sometimes' means validate only if present
-            //     'integer',
-            //     Rule::exists('users', 'id_user'),
-            // ],
             'title' => 'sometimes|string|max:100',
             'description' => 'nullable|string', 
             'polling_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'deadline' => 'sometimes|date|after:now', 
             'options' => 'sometimes|array|min:2', 
-            'options.*.id_option' => 'sometimes|integer|exists:polling_options,id_option',
+            // Fix: Make id_option nullable since it might not exist for new options
+            'options.*.id_option' => 'nullable|integer|exists:polling_options,id_option',
             'options.*.option' => 'required|string|max:255',
             'options_to_delete' => 'nullable|array',
             'options_to_delete.*' => 'integer|exists:polling_options,id_option',

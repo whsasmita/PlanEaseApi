@@ -9,6 +9,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProfileController extends Controller
 {
@@ -16,7 +17,7 @@ class ProfileController extends Controller
     // It requires authentication to access its methods.
     public function __construct()
     {
-        $this->middleware('auth:api');
+        $this->middleware('auth:api')->except(['getPhoto']);
     }
 
     /**
@@ -24,6 +25,10 @@ class ProfileController extends Controller
      */
     public function index()
     {
+        if (!Auth::user()->hasRole('ADMIN')) {
+            return response()->json(['message' => 'Anda tidak memiliki izin untuk melihat semua profil.'], 403);
+        }
+
         $profiles = Profile::all();
 
         if ($profiles->isEmpty()) {
@@ -88,18 +93,27 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function getPhoto(Profile $profile)
+    /**
+     * Mengembalikan foto profil.
+     *
+     * @param  \App\Models\Profile  $profile
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Illuminate\Http\JsonResponse
+     */
+    public function getPhoto(Profile $profile): BinaryFileResponse|\Illuminate\Http\JsonResponse
     {
-        if ($profile->user_id !== Auth::id() && (!Auth::user() || !Auth::user()->hasRole('ADMIN'))) {
+        if ($profile->user_id !== Auth::id() && !Auth::user()->hasRole('ADMIN')) {
             return response()->json(['message' => 'Anda tidak memiliki izin untuk melihat foto ini.'], 403);
         }
 
         if (!$profile->photo_profile || !Storage::disk('public')->exists($profile->photo_profile)) {
-            return response()->file(public_path('images/default_profile.png'));
+            $defaultImagePath = public_path('images/default_profile.png');
+            if (file_exists($defaultImagePath)) {
+                return response()->file($defaultImagePath);
+            }
+            return response()->json(['message' => 'Foto profil tidak ditemukan.'], 404);
         }
 
         $path = Storage::disk('public')->path($profile->photo_profile);
-
         return response()->file($path);
     }
 }

@@ -21,7 +21,9 @@ Route::middleware('auth:api')->group(function () {
         ->name('profile.photo');
 
     Route::apiResource('polling', PollingController::class)
-        ->only(['index', 'show', 'vote','result']);
+        ->only(['index', 'show']);
+    Route::post('polling/{polling}/vote', [PollingController::class, 'vote']);
+    Route::get('polling/{polling}/results', [PollingController::class, 'results']);
 
     Route::apiResource('notula', NotulaController::class)
         ->only(['index', 'show']);

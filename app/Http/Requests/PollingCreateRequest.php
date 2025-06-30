@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule; // Don't forget to import Rule
+use Illuminate\Validation\Rule;
 
 class PollingCreateRequest extends FormRequest
 {
@@ -12,8 +12,8 @@ class PollingCreateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Only users with a specific role can create polls:
-        return auth()->check() && auth()->user()->role === 'admin';
+        // Hanya pengguna dengan peran 'ADMIN' yang diizinkan membuat polling
+        return auth()->check() && auth()->user()->role === 'ADMIN';
     }
 
     /**
@@ -24,17 +24,18 @@ class PollingCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => [
-                'required',
-                'integer',
-                Rule::exists('users', 'id_user'),
-            ],
+            // Hapus aturan 'user_id' karena akan diisi otomatis di controller
+            // 'user_id' => [
+            //     'required',
+            //     'integer',
+            //     Rule::exists('users', 'id_user'),
+            // ],
             'title' => 'required|string|max:100',
             'description' => 'nullable|string',
             'polling_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'deadline' => 'required|date|after:now',
-            'options' => 'required|array|min:2', 
-            'options.*.option' => 'required|string|max:255', 
+            'options' => 'required|array|min:2',
+            'options.*.option' => 'required|string|max:255',
         ];
     }
 
@@ -46,8 +47,9 @@ class PollingCreateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'user_id.required' => 'The user ID is required.',
-            'user_id.exists' => 'The selected user ID is invalid.',
+            // Hapus pesan kustom untuk 'user_id' juga
+            // 'user_id.required' => 'The user ID is required.',
+            // 'user_id.exists' => 'The selected user ID is invalid.',
             'title.required' => 'The polling title is required.',
             'title.max' => 'The polling title may not be greater than 100 characters.',
             'deadline.required' => 'The deadline is required.',

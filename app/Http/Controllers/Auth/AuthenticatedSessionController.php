@@ -6,7 +6,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Arr;
 
@@ -18,7 +17,6 @@ class AuthenticatedSessionController
      */
     public function store(Request $request): JsonResponse
     {
-        // Validasi input
         $request->validate([
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
@@ -30,7 +28,7 @@ class AuthenticatedSessionController
             if (! $token = JWTAuth::attempt($credentials)) {
                 return response()->json([
                     'message' => 'Invalid credentials.',
-                ], 401); 
+                ], 401);
             }
         } catch (JWTException $e) {
             return response()->json([
@@ -41,6 +39,14 @@ class AuthenticatedSessionController
 
         $user = Auth::user();
 
+        // --- TAMBAHKAN BARIS INI UNTUK DEBUGGING ---
+        // Ini akan menghentikan eksekusi dan menampilkan seluruh objek $user
+        // dd($user);
+        // --- AKHIR DEBUGGING ---
+
+        \Illuminate\Support\Facades\Log::info('Type of $user: ' . get_class($user));
+        \Illuminate\Support\Facades\Log::info('Content of $user: ' . json_encode($user));
+
         if (is_null($user)) {
             return response()->json([
                 'message' => 'Login successful, but user data could not be retrieved from Auth facade. Check JWT config.',
@@ -48,12 +54,13 @@ class AuthenticatedSessionController
         }
         return response()->json([
             'message' => 'Login successful.',
-            'user' => Arr::only($user->toArray(), ['id', 'full_name', 'email', 'phone', 'role']),
+            'user' => $user->toArray(),
             'access_token' => $token,
             'token_type' => 'Bearer',
             'expires_in' => config('jwt.ttl') * 60
         ], 200);
     }
+
 
     /**
      * Destroy an authenticated session (for JWT token).

@@ -23,8 +23,8 @@ class PollingController
     public function index(): JsonResponse
     {
         $pollings = Polling::with(['user', 'options'])
-                            ->latest()
-                            ->paginate(10);
+            ->latest()
+            ->paginate(10);
 
         return PollingResource::collection($pollings)->response();
     }
@@ -50,8 +50,8 @@ class PollingController
         $polling->load(['user', 'options']);
 
         return (new PollingResource($polling))
-                ->response()
-                ->setStatusCode(Response::HTTP_CREATED);
+            ->response()
+            ->setStatusCode(Response::HTTP_CREATED);
     }
 
     /**
@@ -83,9 +83,10 @@ class PollingController
         if ($request->has('options')) {
             foreach ($request->options as $optionData) {
                 if (isset($optionData['id_option'])) {
-                    $polling->options()
-                            ->where('id_option', $optionData['id_option'])
-                            ->update(['option' => $optionData['option']]);
+                    $option = $polling->options()->where('id_option', $optionData['id_option'])->first();
+                    if ($option) {
+                        $option->update(['option' => $optionData['option']]);
+                    }
                 } else {
                     $polling->options()->create(['option' => $optionData['option']]);
                 }
@@ -94,8 +95,8 @@ class PollingController
 
         if ($request->has('options_to_delete') && is_array($request->options_to_delete)) {
             $polling->options()
-                    ->whereIn('id_option', $request->options_to_delete)
-                    ->delete();
+                ->whereIn('id_option', $request->options_to_delete)
+                ->delete();
         }
 
         $polling->load(['user', 'options']);
@@ -112,15 +113,18 @@ class PollingController
      */
     public function destroy(Polling $polling): JsonResponse
     {
-        if (!auth()->check() || $polling->user_id !== auth()->id()) {
+        if (!$polling) {
             return response()->json([
-                'message' => 'Unauthorized to delete this polling.'
-            ], Response::HTTP_FORBIDDEN);
+                'message' => 'Polling not found',
+                'data' => []
+            ], Response::HTTP_NOT_FOUND);
         }
 
         $polling->delete();
 
-        return response()->json(null, Response::HTTP_NO_CONTENT);
+        return response()->json([
+            'message' => 'Polling deleted successfully'
+        ], Response::HTTP_OK);
     }
 
 

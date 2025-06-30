@@ -9,13 +9,10 @@ class Polling extends Model
 {
     use HasFactory;
 
-    // Menentukan nama tabel jika tidak sesuai dengan konvensi Laravel (plural dari nama model)
     protected $table = 'pollings';
 
-    // Menentukan primary key jika bukan 'id'
     protected $primaryKey = 'id_polling';
 
-    // Menentukan kolom yang boleh diisi secara massal (mass assignable)
     protected $fillable = [
         'user_id',
         'title',
@@ -24,9 +21,8 @@ class Polling extends Model
         'deadline',
     ];
 
-    // Kolom tanggal yang harus diubah menjadi instance Carbon
-    protected $dates = [
-        'deadline',
+    protected $casts = [
+        'deadline' => 'datetime',
     ];
 
     /**

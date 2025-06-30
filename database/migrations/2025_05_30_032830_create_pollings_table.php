@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('title', 100);
             $table->text('description')->nullable();
             $table->text('polling_image')->nullable();
-            $table->datetime('deadline'); // Changed from date to datetime
+            $table->datetime('deadline');
             $table->timestamps();
         });
 
