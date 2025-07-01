@@ -35,12 +35,13 @@ Route::middleware('auth:api')->group(function () {
 
     Route::group(['middleware' => 'checkRole:ADMIN'], function () {
         Route::apiResource('polling', PollingController::class)
-        ->only(['store', 'update', 'destroy']);
+            ->only(['store', 'update', 'destroy']);
+        Route::delete('/polling/{polling}/image', [PollingController::class, 'deleteImage']);
 
-        Route::apiResource('notula', NotulaController::class
-        )->only(['store', 'update', 'destroy']);
+        Route::apiResource('notula', NotulaController::class)
+            ->only(['store', 'update', 'destroy']);
 
         Route::apiResource('schedule', ScheduleController::class)
-        ->only(['store', 'update', 'destroy']);
+            ->only(['store', 'update', 'destroy']);
     });
 });
