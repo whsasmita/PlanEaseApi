@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\FcmTokenController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotulaController;
 use App\Http\Controllers\PollingController;
@@ -32,6 +33,10 @@ Route::middleware('auth:api')->group(function () {
         ->only(['index', 'show']);
 
     Route::apiResource('notification', NotificationController::class);
+
+    // Rute untuk mengelola FCM Token
+    Route::post('/fcm-token', [FcmTokenController::class, 'store']);
+    Route::delete('/fcm-token', [FcmTokenController::class, 'destroy']);
 
     Route::group(['middleware' => 'checkRole:ADMIN'], function () {
         Route::apiResource('polling', PollingController::class)

@@ -19,8 +19,10 @@ class PollingResource extends JsonResource
             'user_id' => $this->user_id,
             'title' => $this->title,
             'description' => $this->description,
-            'image_url' => $this->polling_image ? asset('storage/' . $this->polling_image) : null, 
-            'deadline' => $this->deadline->format('Y-m-d H:i:s'), 
+            'image_url' => ($this->polling_image && file_exists(public_path($this->polling_image)))
+                ? asset($this->polling_image)
+                : null,
+            'deadline' => $this->deadline->format('Y-m-d H:i:s'),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
 
@@ -37,11 +39,11 @@ class PollingResource extends JsonResource
                     return [
                         'id' => $option->id_option,
                         'option_text' => $option->option,
-                        'vote_count' => $option->votes->count(), 
+                        'vote_count' => $option->votes->count(),
                     ];
                 });
             }),
-            
+
             'is_open' => $this->deadline->isFuture(),
             'time_remaining' => $this->deadline->diffForHumans(),
         ];

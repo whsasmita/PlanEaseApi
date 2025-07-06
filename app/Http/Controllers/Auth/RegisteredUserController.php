@@ -7,10 +7,11 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
 use Intervention\Image\Encoders\PngEncoder;
+use Illuminate\Support\Str;
 
 class RegisteredUserController
 {
@@ -37,8 +38,16 @@ class RegisteredUserController
 
         $img = Image::create(200, 200)->fill($randomColor);
 
-        $img->text($initial, 100, 100, function ($font) {
-            $font->file(public_path('fonts/Roboto_Condensed-Bold.ttf'));
+        $fontPath = public_path('fonts/Roboto_Condensed-Bold.ttf');
+        if (!file_exists($fontPath)) {
+            Log::error("Font file not found at: " . $fontPath);
+            $fontPath = null;
+        }
+
+        $img->text($initial, 100, 100, function ($font) use ($fontPath) {
+            if ($fontPath) {
+                $font->file($fontPath);
+            }
             $font->size(100);
             $font->color('#ffffff');
             $font->align('center');
@@ -47,11 +56,21 @@ class RegisteredUserController
 
         $encodedImage = $img->encode(new PngEncoder());
 
-        $filename = 'profile_photos/' . md5($user->full_name . time()) . '.png';
-        Storage::disk('public')->put($filename, $encodedImage);
+        $destinationDir = public_path('profile_photos');
+
+        if (!file_exists($destinationDir)) {
+            mkdir($destinationDir, 0777, true);
+        }
+
+        $imageName = md5($user->full_name . time() . Str::random(5)) . '.png';
+        $filePath = $destinationDir . '/' . $imageName;
+
+        file_put_contents($filePath, $encodedImage);
+
+        $photoProfilePath = 'profile_photos/' . $imageName;
 
         $user->profile()->create([
-            'photo_profile' => $filename,
+            'photo_profile' => $photoProfilePath,
             'division' => $defaultDivision,
             'position' => $defaultPosition,
         ]);

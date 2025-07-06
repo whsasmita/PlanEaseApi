@@ -102,4 +102,9 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Polling::class, 'user_id', 'id_user');
     }
+
+    public function fcmTokens()
+    {
+        return $this->hasMany(FcmToken::class, 'user_id', 'id_user');
+    }
 }

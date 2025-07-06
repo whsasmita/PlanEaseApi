@@ -11,7 +11,6 @@ use App\Http\Requests\PollingVoteRequest;
 use App\Http\Resources\PollingResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PollingController
@@ -44,12 +43,18 @@ class PollingController
             $requestData = $request->validated();
             $requestData['user_id'] = auth()->id();
 
-            // Handle image upload
             if ($request->hasFile('polling_image')) {
                 $image = $request->file('polling_image');
                 $imageName = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
-                $imagePath = $image->storeAs('polling_images', $imageName, 'public');
-                $requestData['polling_image'] = $imagePath;
+                $destinationPath = public_path('polling_images');
+
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0777, true);
+                }
+
+                $image->move($destinationPath, $imageName);
+
+                $requestData['polling_image'] = 'polling_images/' . $imageName;
             }
 
             $polling = Polling::create($requestData);
@@ -98,18 +103,24 @@ class PollingController
         try {
             $requestData = $request->validated();
 
-            // Handle image upload
             if ($request->hasFile('polling_image')) {
-                // Delete old image if exists
-                if ($polling->polling_image && Storage::disk('public')->exists($polling->polling_image)) {
-                    Storage::disk('public')->delete($polling->polling_image);
+                if ($polling->polling_image && file_exists(public_path($polling->polling_image))) {
+                    if (!Str::contains($polling->polling_image, 'images/default_polling.png')) {
+                        unlink(public_path($polling->polling_image));
+                    }
                 }
 
-                // Upload new image
                 $image = $request->file('polling_image');
                 $imageName = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
-                $imagePath = $image->storeAs('polling_images', $imageName, 'public');
-                $requestData['polling_image'] = $imagePath;
+                $destinationPath = public_path('polling_images');
+
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0777, true);
+                }
+
+                $image->move($destinationPath, $imageName);
+
+                $requestData['polling_image'] = 'polling_images/' . $imageName;
             }
 
             $polling->update($requestData);
@@ -117,13 +128,11 @@ class PollingController
             if ($request->has('options')) {
                 foreach ($request->options as $optionData) {
                     if (isset($optionData['id_option']) && $optionData['id_option'] !== null) {
-                        // Update existing option
                         $option = $polling->options()->where('id_option', $optionData['id_option'])->first();
                         if ($option) {
                             $option->update(['option' => $optionData['option']]);
                         }
                     } else {
-                        // Create new option
                         $polling->options()->create(['option' => $optionData['option']]);
                     }
                 }
@@ -156,9 +165,8 @@ class PollingController
     public function destroy(Polling $polling): JsonResponse
     {
         try {
-            // Delete image if exists
-            if ($polling->polling_image && Storage::disk('public')->exists($polling->polling_image)) {
-                Storage::disk('public')->delete($polling->polling_image);
+            if ($polling->polling_image && file_exists(public_path($polling->polling_image))) {
+                unlink(public_path($polling->polling_image));
             }
 
             $polling->delete();
@@ -230,7 +238,9 @@ class PollingController
             'id' => $polling->id_polling,
             'title' => $polling->title,
             'description' => $polling->description,
-            'polling_image' => $polling->polling_image ? asset('storage/' . $polling->polling_image) : null,
+            'polling_image' => ($polling->polling_image && file_exists(public_path($polling->polling_image)))
+                ? asset($polling->polling_image)
+                : null,
             'deadline' => $polling->deadline->format('Y-m-d H:i:s'),
             'is_open' => $polling->deadline->isFuture(),
             'total_votes_cast' => $totalVotes,
@@ -258,8 +268,8 @@ class PollingController
     public function deleteImage(Polling $polling): JsonResponse
     {
         try {
-            if ($polling->polling_image && Storage::disk('public')->exists($polling->polling_image)) {
-                Storage::disk('public')->delete($polling->polling_image);
+            if ($polling->polling_image && file_exists(public_path($polling->polling_image))) {
+                unlink(public_path($polling->polling_image));
                 $polling->update(['polling_image' => null]);
 
                 return response()->json([

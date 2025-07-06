@@ -20,22 +20,28 @@ class ProfileFactory extends Factory
     public function definition(): array
     {
         $sourceImages = [
-            storage_path('app/public/seeder_photos/dummy_photos1.png'),
-            storage_path('app/public/seeder_photos/dummy_photos2.png'),
+            public_path('seeder_photos/dummy_photos1.png'),
+            public_path('seeder_photos/dummy_photos2.png'),
         ];
 
         $randomImagePath = fake()->randomElement($sourceImages);
 
-        $destinationFilename = 'profile_photos/' . Str::random(40) . '.png';
+        $destinationDir = public_path('profile_photos');
 
-        Storage::disk('public')->put(
-            $destinationFilename,
-            file_get_contents($randomImagePath)
-        );
+        if (!file_exists($destinationDir)) {
+            mkdir($destinationDir, 0777, true);
+        }
+
+        $imageName = Str::random(40) . '.png';
+        $filePath = $destinationDir . '/' . $imageName;
+
+        file_put_contents($filePath, file_get_contents($randomImagePath));
+
+        $databasePath = 'profile_photos/' . $imageName;
 
         return [
             'user_id' => User::factory(),
-            'photo_profile' => $destinationFilename,
+            'photo_profile' => $databasePath,
             'position' => fake()->jobTitle(),
             'division' => fake()->company(),
         ];

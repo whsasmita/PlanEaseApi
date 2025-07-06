@@ -7,9 +7,9 @@ use App\Http\Resources\ProfileResource;
 use App\Models\Profile;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Illuminate\Support\Str;
 
 class ProfileController extends Controller
 {
@@ -65,19 +65,29 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        if ($profile->user_id !== $user->id_user) {
+        if ($profile->user_id !== $user->id_user) { 
             return response()->json(['message' => 'Anda tidak memiliki izin untuk memperbarui profil ini.'], 403);
         }
 
         $validatedData = $request->validated();
 
         if ($request->hasFile('photo_profile')) {
-            if ($profile->photo_profile && Storage::disk('public')->exists($profile->photo_profile)) {
-                Storage::disk('public')->delete($profile->photo_profile);
+            if ($profile->photo_profile && file_exists(public_path($profile->photo_profile))) {
+                if (!Str::contains($profile->photo_profile, 'images/default_profile.png')) {
+                    unlink(public_path($profile->photo_profile));
+                }
             }
 
-            $path = $request->file('photo_profile')->store('profile_photos', 'public');
-            $profile->photo_profile = $path;
+            $imageName = time() . '_' . Str::random(10) . '.' . $request->file('photo_profile')->extension();
+            $destinationPath = public_path('profile_photos');
+
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0777, true);
+            }
+
+            $request->file('photo_profile')->move($destinationPath, $imageName);
+
+            $profile->photo_profile = 'profile_photos/' . $imageName;
         }
 
         $profile->fill([
@@ -101,19 +111,23 @@ class ProfileController extends Controller
      */
     public function getPhoto(Profile $profile): BinaryFileResponse|\Illuminate\Http\JsonResponse
     {
-        if ($profile->user_id !== Auth::id() && !Auth::user()->hasRole('ADMIN')) {
-            return response()->json(['message' => 'Anda tidak memiliki izin untuk melihat foto ini.'], 403);
-        }
-
-        if (!$profile->photo_profile || !Storage::disk('public')->exists($profile->photo_profile)) {
-            $defaultImagePath = public_path('images/default_profile.png');
-            if (file_exists($defaultImagePath)) {
-                return response()->file($defaultImagePath);
+        if (Auth::check()) {
+            if ($profile->user_id !== Auth::id() && !Auth::user()->hasRole('ADMIN')) {
+                return response()->json(['message' => 'Anda tidak memiliki izin untuk melihat foto ini.'], 403);
             }
-            return response()->json(['message' => 'Foto profil tidak ditemukan.'], 404);
         }
 
-        $path = Storage::disk('public')->path($profile->photo_profile);
-        return response()->file($path);
+
+        $photoPath = public_path($profile->photo_profile);
+        if ($profile->photo_profile && file_exists($photoPath)) {
+            return response()->file($photoPath);
+        }
+
+        $defaultImagePath = public_path('images/default_profile.png');
+        if (file_exists($defaultImagePath)) {
+            return response()->file($defaultImagePath);
+        }
+
+        return response()->json(['message' => 'Foto profil tidak ditemukan.'], 404);
     }
 }
