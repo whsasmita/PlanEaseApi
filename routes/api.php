@@ -14,12 +14,13 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 Route::post('/refresh-token', [AuthenticatedSessionController::class, 'refresh']);
 
+Route::get('/profile-photo/{profile}', [ProfileController::class, 'getPhoto'])
+    ->name('profile.photo');
+
 Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy']);
 
     Route::apiResource('profile', ProfileController::class);
-    Route::get('/profile-photo/{profile}', [ProfileController::class, 'getPhoto'])
-        ->name('profile.photo');
 
     Route::apiResource('polling', PollingController::class)
         ->only(['index', 'show']);
@@ -32,7 +33,10 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('schedule', ScheduleController::class)
         ->only(['index', 'show']);
 
-    Route::apiResource('notification', NotificationController::class);
+    // Route::apiResource('notification', NotificationController::class);
+
+    Route::post('/send-notification-to-user', [NotificationController::class, 'sendTestNotificationToUser']);
+    Route::post('/send-topic-notification', [NotificationController::class, 'sendTopicNotification']);
 
     // Rute untuk mengelola FCM Token
     Route::post('/fcm-token', [FcmTokenController::class, 'store']);

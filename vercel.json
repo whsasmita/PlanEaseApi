@@ -1,38 +1,27 @@
 {
     "version": 2,
+      "framework": null,
     "functions": {
-        "api/index.php": {
-            "runtime": "vercel-php@0.6.0"
-        }
+        "api/index.php": { "runtime": "vercel-php@0.6.0" }
     },
-    "routes": [
-        {
-            "src": "/api/(.*)",
-            "dest": "/api/index.php"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/api/index.php"
-        }
-    ],
+    "routes": [{
+        "src": "/(.*)",
+        "dest": "/api/index.php"
+    }],
     "env": {
         "APP_ENV": "production",
-        "APP_DEBUG": "false",
-        "APP_URL": "https://plan-ease-api.vercel.app",
-        "APP_KEY": "base64:MQ6wWkZcJ9pemSU9xqB/si2kKfDTygIZBsGxfoB8aQs=",
+        "APP_DEBUG": "true",
+        "APP_URL": "https://yourproductionurl.com",
+ 
         "APP_CONFIG_CACHE": "/tmp/config.php",
         "APP_EVENTS_CACHE": "/tmp/events.php",
         "APP_PACKAGES_CACHE": "/tmp/packages.php",
         "APP_ROUTES_CACHE": "/tmp/routes.php",
         "APP_SERVICES_CACHE": "/tmp/services.php",
         "VIEW_COMPILED_PATH": "/tmp",
+ 
         "CACHE_DRIVER": "array",
         "LOG_CHANNEL": "stderr",
-        "SESSION_DRIVER": "cookie",
-        "DB_CONNECTION": "mysql",
-        "DB_HOST": "6huex.h.filess.io",
-        "DB_PORT": "3307",
-        "DB_DATABASE": "dbplanease0102_dutychance",
-        "DB_USERNAME": "dbplanease0102_dutychance"
+        "SESSION_DRIVER": "cookie"
     }
 }

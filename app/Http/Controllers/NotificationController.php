@@ -2,76 +2,99 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User; // Perlu model User
-use App\Http\Resources\NotificationResource;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Notifications\DatabaseNotification;
+use App\Services\FirebaseNotificationService;
+use App\Models\User; // Impor model User
+use App\Notifications\NewOrderNotification; // Impor notifikasi yang sudah Anda buat
+use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 
-class NotificationController
+class NotificationController extends Controller
 {
-    /**
-     * Display a listing of the resource for the authenticated user.
-     */
-    public function index(Request $request)
+    protected $firebaseNotificationService;
+
+    public function __construct(FirebaseNotificationService $firebaseNotificationService)
     {
-        $user = $request->user();
+        $this->firebaseNotificationService = $firebaseNotificationService;
+    }
+
+    /**
+     * Mengirim notifikasi tes ke user berdasarkan user_id.
+     * Menggunakan sistem notifikasi Laravel.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function sendTestNotificationToUser(Request $request): JsonResponse
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id_user', // Validasi user_id (sesuaikan `id_user` dengan primary key di tabel `users` Anda)
+            'title' => 'required|string|max:255', // Judul notifikasi
+            'body' => 'required|string',         // Isi notifikasi
+            'data' => 'sometimes|array',         // Data kustom (opsional)
+        ]);
+
+        $userId = $request->input('user_id');
+        $title = $request->input('title');
+        $body = $request->input('body');
+        $data = $request->input('data', []); // Default array kosong jika tidak ada data
+
+        $user = User::find($userId);
+
         if (!$user) {
-            return response()->json(['message' => 'Unauthenticated'], Response::HTTP_UNAUTHORIZED);
+            return response()->json(['message' => 'User not found.'], 404);
         }
 
-        $notifications = $user->notifications()->orderBy('created_at', 'desc')->get();
+        // Pastikan user memiliki FCM token
+        if ($user->fcmTokens->isEmpty()) {
+            return response()->json(['message' => 'No FCM tokens found for this user.'], 400);
+        }
 
-        return NotificationResource::collection($notifications);
+        try {
+            // Menggunakan sistem notifikasi Laravel
+            // Pass judul, isi, dan data langsung ke konstruktor NewOrderNotification
+            $user->notify(new NewOrderNotification($title, $body, $data, $user));
 
-        // Only this command for testing without authentication 
-        // $notifications = DatabaseNotification::orderBy('created_at', 'desc')->get();
-        // return NotificationResource::collection($notifications);
+            return response()->json([
+                'message' => 'Notification successfully queued/sent via Laravel Notifications.',
+                'user_id' => $userId,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error("Error sending notification via Laravel Notifications: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to send notification via Laravel Notifications.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
-     * Display the specified resource for the authenticated user.
+     * Mengirim notifikasi ke topik tertentu (menggunakan FirebaseNotificationService secara langsung).
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function show(Request $request, DatabaseNotification $notification)
+    public function sendTopicNotification(Request $request): JsonResponse
     {
-        $user = $request->user();
-        if (!$user || $notification->notifiable_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized or Not Found'], Response::HTTP_NOT_FOUND);
+        $request->validate([
+            'topic' => 'required|string',
+            'title' => 'required|string',
+            'body' => 'required|string',
+            'data' => 'sometimes|array',
+        ]);
+
+        $topic = $request->input('topic');
+        $title = $request->input('title');
+        $body = $request->input('body');
+        $data = $request->input('data', []);
+
+        $result = $this->firebaseNotificationService->sendToTopic($topic, $title, $body, $data);
+
+        if ($result['success']) {
+            return response()->json(['message' => 'Topic notification sent successfully!', 'report' => $result['report']]);
+        } else {
+            return response()->json(['message' => 'Failed to send topic notification', 'error' => $result['error']], 500);
         }
-
-        // Only this command for testing without authentication
-        return new NotificationResource($notification);
     }
-
-    /**
-     * Update the specified resource in storage (Mark as read).
-     */
-    public function update(Request $request, DatabaseNotification $notification): NotificationResource
-    {
-        $user = $request->user();
-        if (!$user || $notification->notifiable_id !== $user->id) {
-            abort(Response::HTTP_NOT_FOUND, 'Notification not found or unauthorized.');
-        }
-
-        // Only this command for testing without authentication
-        $notification->markAsRead();
-
-        return new NotificationResource($notification);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    // public function destroy(Request $request, DatabaseNotification $notification)
-    // {
-    //     $user = $request->user();
-    //     if (!$user || $notification->notifiable_id !== $user->id) {
-    //         abort(Response::HTTP_NOT_FOUND, 'Notification not found or unauthorized.');
-    //     }
-
-    //     // Only this command for testing without authentication
-    //     $notification->delete();
-
-    //     return response()->json(null, Response::HTTP_NO_CONTENT);
-    // }
 }
